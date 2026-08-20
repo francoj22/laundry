@@ -1,5 +1,7 @@
 package com.microservice.gateway.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,8 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/api")
 public class ApiGatewayController {
+
+    private static final Logger log = LoggerFactory.getLogger(ApiGatewayController.class);
 
     private final RestClient restClient;
 
@@ -49,22 +53,38 @@ public class ApiGatewayController {
     }
 
     private ResponseEntity<String> forwardGet(String url, HttpServletRequest request) {
-        return restClient.get()
-                .uri(url)
-                .header("X-User-Id", String.valueOf(request.getAttribute("gatewayUserId")))
-                .header("X-User-Role", String.valueOf(request.getAttribute("gatewayUserRole")))
-                .retrieve()
-                .toEntity(String.class);
+        log.debug("Forwarding GET {} for userId={} role={}", url, request.getAttribute("gatewayUserId"), request.getAttribute("gatewayUserRole"));
+        try {
+            ResponseEntity<String> response = restClient.get()
+                    .uri(url)
+                    .header("X-User-Id", String.valueOf(request.getAttribute("gatewayUserId")))
+                    .header("X-User-Role", String.valueOf(request.getAttribute("gatewayUserRole")))
+                    .retrieve()
+                    .toEntity(String.class);
+            log.debug("GET {} completed with status {}", url, response.getStatusCode());
+            return response;
+        } catch (Exception ex) {
+            log.error("GET {} failed: {}", url, ex.getMessage(), ex);
+            throw ex;
+        }
     }
 
     private ResponseEntity<String> forwardPost(String url, String body, HttpServletRequest request) {
-        return restClient.post()
-                .uri(url)
-                .header("X-User-Id", String.valueOf(request.getAttribute("gatewayUserId")))
-                .header("X-User-Role", String.valueOf(request.getAttribute("gatewayUserRole")))
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .toEntity(String.class);
+        log.debug("Forwarding POST {} for userId={} role={} bodyLength={}", url, request.getAttribute("gatewayUserId"), request.getAttribute("gatewayUserRole"), body == null ? 0 : body.length());
+        try {
+            ResponseEntity<String> response = restClient.post()
+                    .uri(url)
+                    .header("X-User-Id", String.valueOf(request.getAttribute("gatewayUserId")))
+                    .header("X-User-Role", String.valueOf(request.getAttribute("gatewayUserRole")))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .toEntity(String.class);
+            log.debug("POST {} completed with status {}", url, response.getStatusCode());
+            return response;
+        } catch (Exception ex) {
+            log.error("POST {} failed: {}", url, ex.getMessage(), ex);
+            throw ex;
+        }
     }
 }

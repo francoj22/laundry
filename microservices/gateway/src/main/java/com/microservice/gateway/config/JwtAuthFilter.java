@@ -16,8 +16,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
 
     private final JwtService jwtService;
 
@@ -35,6 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("Missing or invalid Authorization header for {}", request.getRequestURI());
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return;
         }
@@ -44,12 +50,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
             claims = jwtService.parseToken(token);
         } catch (Exception ex) {
+            log.warn("JWT validation failed for {}: {}", request.getRequestURI(), ex.getMessage());
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return;
         }
 
         String userId = claims.getSubject();
         String role = String.valueOf(claims.get("role"));
+
+        log.debug("JWT accepted for {} with userId={} role={}", request.getRequestURI(), userId, role);
 
         request.setAttribute("gatewayUserId", userId);
         request.setAttribute("gatewayUserRole", role);
