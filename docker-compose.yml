@@ -1,0 +1,21 @@
+services:
+  submissions-service:
+    build:
+      context: ./microservices/submissions-service
+    ports:
+      - "8082:8082"
+
+  payments-service:
+    build:
+      context: ./microservices/payments-service
+    ports:
+      - "8083:8083"
+
+  gateway:
+    build:
+      context: ./microservices/gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - submissions-service
+      - payments-service
