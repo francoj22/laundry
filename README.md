@@ -1,6 +1,6 @@
 # Laundry Microservices Example
 
-A small Spring Boot microservices demo built around an API gateway, JWT authentication, Swagger/OpenAPI, and isolated H2-backed services.
+A Spring Boot microservices demo built around an API gateway, JWT authentication, Swagger/OpenAPI, and isolated H2-backed services.
 
 I used an API Gateway as the single entry point for the frontend. It handled routing requests to the appropriate Spring Boot microservice, while authentication and authorization were handled using JWT. The individual services were responsible for their own business logic and persistence using Hibernate/JPA. We could then independently deploy and scale services such as submissions and payments.
 
