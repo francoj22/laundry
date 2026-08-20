@@ -62,7 +62,7 @@ public class ApiGatewayController {
                     .retrieve()
                     .toEntity(String.class);
             log.debug("GET {} completed with status {}", url, response.getStatusCode());
-            return response;
+            return relayResponse(response);
         } catch (Exception ex) {
             log.error("GET {} failed: {}", url, ex.getMessage(), ex);
             throw ex;
@@ -81,10 +81,19 @@ public class ApiGatewayController {
                     .retrieve()
                     .toEntity(String.class);
             log.debug("POST {} completed with status {}", url, response.getStatusCode());
-            return response;
+            return relayResponse(response);
         } catch (Exception ex) {
             log.error("POST {} failed: {}", url, ex.getMessage(), ex);
             throw ex;
         }
+    }
+
+    private ResponseEntity<String> relayResponse(ResponseEntity<String> upstreamResponse) {
+        ResponseEntity.BodyBuilder builder = ResponseEntity.status(upstreamResponse.getStatusCode());
+        if (upstreamResponse.getHeaders().getContentType() != null) {
+            builder.contentType(upstreamResponse.getHeaders().getContentType());
+        }
+            // Removed unnecessary Accept header relay
+        return builder.body(upstreamResponse.getBody());
     }
 }
